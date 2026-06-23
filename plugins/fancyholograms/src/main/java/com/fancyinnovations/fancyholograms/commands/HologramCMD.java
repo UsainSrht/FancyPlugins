@@ -70,7 +70,7 @@ public final class HologramCMD extends Command {
     private final FancyHologramsPlugin plugin;
 
     public HologramCMD(@NotNull final FancyHologramsPlugin plugin) {
-        super("hologram", "Main command for the FancyHolograms plugin", "/hologram help", List.of("holograms", "holo", "fholo"));
+        super("hologram", "Main command for the FancyHolograms plugin", "/hologram help", Collections.emptyList());
 
         setPermission("fancyholograms.admin");
 
@@ -266,7 +266,7 @@ public final class HologramCMD extends Command {
 
                     yield FancyNpcsPlugin.get().getNpcManager().getAllNpcs().stream().map(npc -> npc.getData().getName());
                 }
-                case "block" -> Arrays.stream(Material.values()).filter(Material::isBlock).map(Enum::name);
+                case "block" -> Stream.<String>empty();
                 case "seethrough" -> Stream.of("true", "false");
                 case "visibility" -> new VisibilityCMD().tabcompletion(sender, hologram, args).stream();
 

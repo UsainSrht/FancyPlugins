@@ -42,7 +42,6 @@ public final class HologramImpl extends Hologram {
         }
     }
 
-
     @Override
     public void spawnTo(@NotNull final Player player) {
         if (!new HologramSpawnEvent(this, player).callEvent()) {
@@ -61,9 +60,13 @@ public final class HologramImpl extends Hologram {
         }
 
         if (FancyHologramsPlugin.get().getFHConfiguration().isHologramsForOldClientsEnabled()) {
-            final var protocolVersion = PluginUtils.isViaVersionEnabled() ? Via.getAPI().getPlayerVersion(player.getUniqueId()) : MINIMUM_PROTOCOL_VERSION;
+            final var protocolVersion = PluginUtils.isViaVersionEnabled()
+                    ? Via.getAPI().getPlayerVersion(player.getUniqueId())
+                    : MINIMUM_PROTOCOL_VERSION;
             if (protocolVersion < MINIMUM_PROTOCOL_VERSION) {
-                FancyHolograms.get().getFancyLogger().debug("Player " + player.getName() + " is using an outdated protocol version (" + protocolVersion + "). Hologram will not be shown.");
+                FancyHolograms.get().getFancyLogger()
+                        .debug("Player " + player.getName() + " is using an outdated protocol version ("
+                                + protocolVersion + "). Hologram will not be shown.");
                 return;
             }
         }
@@ -96,7 +99,6 @@ public final class HologramImpl extends Hologram {
         this.viewers.remove(player.getUniqueId());
     }
 
-
     @Override
     public void updateFor(@NotNull final Player player) {
         if (fsDisplay == null) {
@@ -117,15 +119,14 @@ public final class HologramImpl extends Hologram {
         FS_RealPlayer fsPlayer = new FS_RealPlayer(player);
 
         FancySitula.PACKET_FACTORY.createTeleportEntityPacket(
-                        fsDisplay.getId(),
-                        data.getLocation().x(),
-                        data.getLocation().y(),
-                        data.getLocation().z(),
-                        data.getLocation().getYaw(),
-                        data.getLocation().getPitch(),
-                        true)
+                fsDisplay.getId(),
+                data.getLocation().x(),
+                data.getLocation().y(),
+                data.getLocation().z(),
+                data.getLocation().getYaw(),
+                data.getLocation().getPitch(),
+                true)
                 .send(fsPlayer);
-
 
         if (fsDisplay instanceof FS_TextDisplay textDisplay) {
             textDisplay.setText(getShownText(player));
@@ -158,8 +159,8 @@ public final class HologramImpl extends Hologram {
             fsDisplay.setLocation(location);
         }
 
-
-        if (fsDisplay instanceof FS_TextDisplay textDisplay && data instanceof com.fancyinnovations.fancyholograms.api.data.TextHologramData textData) {
+        if (fsDisplay instanceof FS_TextDisplay textDisplay
+                && data instanceof com.fancyinnovations.fancyholograms.api.data.TextHologramData textData) {
             // line width
             textDisplay.setLineWidth(Hologram.LINE_WIDTH);
 
@@ -185,14 +186,17 @@ public final class HologramImpl extends Hologram {
                     textDisplay.setAlignRight(false);
                 }
             }
-        } else if (fsDisplay instanceof FS_ItemDisplay itemDisplay && data instanceof com.fancyinnovations.fancyholograms.api.data.ItemHologramData itemData) {
+        } else if (fsDisplay instanceof FS_ItemDisplay itemDisplay
+                && data instanceof com.fancyinnovations.fancyholograms.api.data.ItemHologramData itemData) {
             // item
             itemDisplay.setItem(itemData.getItemStack());
-        } else if (fsDisplay instanceof FS_BlockDisplay blockDisplay && data instanceof com.fancyinnovations.fancyholograms.api.data.BlockHologramData blockData) {
+        } else if (fsDisplay instanceof FS_BlockDisplay blockDisplay
+                && data instanceof com.fancyinnovations.fancyholograms.api.data.BlockHologramData blockData) {
             // block
+            // BlockType blockType =
+            // RegistryAccess.registryAccess().getRegistry(RegistryKey.BLOCK).get(blockData.getBlock().getKey());
 
-//            BlockType blockType = RegistryAccess.registryAccess().getRegistry(RegistryKey.BLOCK).get(blockData.getBlock().getKey());
-            blockDisplay.setBlock(blockData.getBlock().createBlockData().createBlockState());
+            blockDisplay.setBlock(blockData.getBlockData().createBlockState());
         }
 
         if (data instanceof com.fancyinnovations.fancyholograms.api.data.DisplayHologramData displayData) {
@@ -205,7 +209,8 @@ public final class HologramImpl extends Hologram {
 
             // brightness
             if (displayData.getBrightness() != null) {
-                fsDisplay.setBrightnessOverride(displayData.getBrightness().getBlockLight() << 4 | displayData.getBrightness().getSkyLight() << 20);
+                fsDisplay.setBrightnessOverride(displayData.getBrightness().getBlockLight() << 4
+                        | displayData.getBrightness().getSkyLight() << 20);
             }
 
             // entity transformation
@@ -221,7 +226,9 @@ public final class HologramImpl extends Hologram {
             fsDisplay.setShadowStrength(displayData.getShadowStrength());
 
             // glowing
-            if (displayData.getGlowingColor() != null && displayData.getGlowingColor() != de.oliver.fancylib.colors.GlowingColor.DISABLED && displayData.getGlowingColor().getColor() != null) {
+            if (displayData.getGlowingColor() != null
+                    && displayData.getGlowingColor() != de.oliver.fancylib.colors.GlowingColor.DISABLED
+                    && displayData.getGlowingColor().getColor() != null) {
                 byte currentFlags = 0;
                 try {
                     currentFlags = fsDisplay.getSharedFlags();

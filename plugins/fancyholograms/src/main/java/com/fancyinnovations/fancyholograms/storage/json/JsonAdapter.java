@@ -75,7 +75,7 @@ public class JsonAdapter {
 
     public static JsonBlockHologramData blockHologramDataToJson(com.fancyinnovations.fancyholograms.api.data.BlockHologramData data) {
         return new JsonBlockHologramData(
-                data.getBlock().name()
+                data.getBlockData().getAsString()
         );
     }
 
@@ -195,7 +195,7 @@ public class JsonAdapter {
                             .setLinkedNpcName(data.hologram_data().linkedNpcName());
             case BLOCK ->
                     new com.fancyinnovations.fancyholograms.api.data.BlockHologramData(data.hologram_data().name(), loc)
-                            .setBlock(Material.getMaterial(data.block_data().block_material())) // block data
+                            .setBlockData(parseBlockData(data.block_data().block_material())) // block data
                             .setBillboard(data.display_data().billboard()) // display data
                             .setScale(scale)
                             .setTranslation(translation)
@@ -225,5 +225,28 @@ public class JsonAdapter {
         }
 
         return hologramData;
+    }
+
+    private static org.bukkit.block.data.BlockData parseBlockData(String str) {
+        if (str == null || str.isEmpty()) {
+            return Material.GRASS_BLOCK.createBlockData();
+        }
+        try {
+            return Bukkit.createBlockData(str);
+        } catch (Exception e) {
+            try {
+                return Bukkit.createBlockData(str.toLowerCase());
+            } catch (Exception e2) {
+                try {
+                    return Bukkit.createBlockData(str.toUpperCase());
+                } catch (Exception e3) {
+                    Material mat = Material.getMaterial(str.toUpperCase());
+                    if (mat != null && mat.isBlock()) {
+                        return mat.createBlockData();
+                    }
+                    return Material.GRASS_BLOCK.createBlockData();
+                }
+            }
+        }
     }
 }

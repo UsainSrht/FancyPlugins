@@ -214,6 +214,7 @@ public class FancyHologramsPlugin extends JavaPlugin implements FancyHolograms {
         new FancyLib(INSTANCE);
 
         registerCommands();
+        registerBrigadierCommands();
         if (configuration.useLampCommands()) {
             registerLampCommands();
         }
@@ -458,4 +459,9 @@ public class FancyHologramsPlugin extends JavaPlugin implements FancyHolograms {
     public Translator getTranslator() {
         return translator;
     }
+
+    private void registerBrigadierCommands() {
+        com.fancyinnovations.fancyholograms.commands.HologramBrigadier.register(this);
+    }
 }
+
