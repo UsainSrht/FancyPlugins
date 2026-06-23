@@ -190,9 +190,7 @@ public final class HologramImpl extends Hologram {
             itemDisplay.setItem(itemData.getItemStack());
         } else if (fsDisplay instanceof FS_BlockDisplay blockDisplay && data instanceof com.fancyinnovations.fancyholograms.api.data.BlockHologramData blockData) {
             // block
-
-//            BlockType blockType = RegistryAccess.registryAccess().getRegistry(RegistryKey.BLOCK).get(blockData.getBlock().getKey());
-            blockDisplay.setBlock(blockData.getBlock().createBlockData().createBlockState());
+            blockDisplay.setBlock(blockData.getBlockData().createBlockState());
         }
 
         if (data instanceof com.fancyinnovations.fancyholograms.api.data.DisplayHologramData displayData) {

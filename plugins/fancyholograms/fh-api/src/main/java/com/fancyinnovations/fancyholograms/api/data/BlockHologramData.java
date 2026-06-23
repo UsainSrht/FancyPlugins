@@ -1,8 +1,10 @@
 package com.fancyinnovations.fancyholograms.api.data;
 
 import com.fancyinnovations.fancyholograms.api.hologram.HologramType;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -10,9 +12,9 @@ import java.util.Objects;
 
 public class BlockHologramData extends DisplayHologramData {
 
-    public static Material DEFAULT_BLOCK = Material.GRASS_BLOCK;
+    public static BlockData DEFAULT_BLOCK_DATA = Bukkit.createBlockData(Material.GRASS_BLOCK);
 
-    private Material block = DEFAULT_BLOCK;
+    private BlockData blockData = DEFAULT_BLOCK_DATA;
 
     /**
      * @param name     Name of hologram
@@ -23,13 +25,26 @@ public class BlockHologramData extends DisplayHologramData {
         super(name, HologramType.BLOCK, location);
     }
 
+    @Deprecated
     public Material getBlock() {
-        return block;
+        return blockData.getMaterial();
     }
 
+    @Deprecated
     public BlockHologramData setBlock(Material block) {
-        if (!Objects.equals(this.block, block)) {
-            this.block = block;
+        if (block == null) {
+            return this;
+        }
+        return setBlockData(block.createBlockData());
+    }
+
+    public BlockData getBlockData() {
+        return blockData;
+    }
+
+    public BlockHologramData setBlockData(BlockData blockData) {
+        if (!Objects.equals(this.blockData, blockData)) {
+            this.blockData = blockData;
             setHasChanges(true);
         }
 
@@ -40,7 +55,16 @@ public class BlockHologramData extends DisplayHologramData {
     @ApiStatus.Internal
     public boolean read(ConfigurationSection section, String name) {
         super.read(section, name);
-        block = Material.getMaterial(section.getString("block", "GRASS_BLOCK").toUpperCase());
+        String blockStr = section.getString("block", "GRASS_BLOCK");
+        try {
+            blockData = Bukkit.createBlockData(blockStr);
+        } catch (IllegalArgumentException e) {
+            try {
+                blockData = Bukkit.createBlockData(blockStr.toUpperCase());
+            } catch (IllegalArgumentException e2) {
+                blockData = DEFAULT_BLOCK_DATA;
+            }
+        }
 
         return true;
     }
@@ -49,7 +73,7 @@ public class BlockHologramData extends DisplayHologramData {
     @ApiStatus.Internal
     public boolean write(ConfigurationSection section, String name) {
         super.write(section, name);
-        section.set("block", block.name());
+        section.set("block", blockData.getAsString());
 
         return true;
     }
@@ -58,7 +82,7 @@ public class BlockHologramData extends DisplayHologramData {
     public BlockHologramData copy(String name) {
         BlockHologramData blockHologramData = new BlockHologramData(name, getLocation());
         blockHologramData
-                .setBlock(this.getBlock())
+                .setBlockData(this.getBlockData())
                 .setScale(this.getScale())
                 .setShadowRadius(this.getShadowRadius())
                 .setShadowStrength(this.getShadowStrength())

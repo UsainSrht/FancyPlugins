@@ -3,6 +3,7 @@ package com.fancyinnovations.fancyholograms.api.data.builder;
 import com.fancyinnovations.fancyholograms.api.data.BlockHologramData;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.data.BlockData;
 
 public class BlockHologramBuilder extends HologramBuilder {
 
@@ -29,6 +30,16 @@ public class BlockHologramBuilder extends HologramBuilder {
      */
     public BlockHologramBuilder block(Material block) {
         ((BlockHologramData) data).setBlock(block);
+        return this;
+    }
+
+    /**
+     * Sets the block data for the block hologram.
+     *
+     * @param blockData the data of the block
+     */
+    public BlockHologramBuilder blockData(BlockData blockData) {
+        ((BlockHologramData) data).setBlockData(blockData);
         return this;
     }
 

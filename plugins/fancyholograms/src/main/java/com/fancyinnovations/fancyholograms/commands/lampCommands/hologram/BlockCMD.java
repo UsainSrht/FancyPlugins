@@ -1,24 +1,19 @@
 package com.fancyinnovations.fancyholograms.commands.lampCommands.hologram;
 
 import com.fancyinnovations.fancyholograms.api.data.BlockHologramData;
-import com.fancyinnovations.fancyholograms.api.data.TextHologramData;
 import com.fancyinnovations.fancyholograms.api.events.HologramUpdateEvent;
 import com.fancyinnovations.fancyholograms.api.hologram.Hologram;
 import com.fancyinnovations.fancyholograms.api.hologram.HologramType;
 import com.fancyinnovations.fancyholograms.commands.HologramCMD;
 import com.fancyinnovations.fancyholograms.commands.lampCommands.conditions.IsHologramType;
-import com.fancyinnovations.fancyholograms.commands.lampCommands.suggestions.BlockMaterialSuggestion;
 import com.fancyinnovations.fancyholograms.main.FancyHologramsPlugin;
 import de.oliver.fancylib.translations.Translator;
-import de.oliver.fancynpcs.api.actions.types.BlockUntilDoneAction;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.entity.Display;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.annotation.Description;
-import revxrsal.commands.annotation.SuggestWith;
 import revxrsal.commands.bukkit.actor.BukkitCommandActor;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
@@ -35,32 +30,24 @@ public final class BlockCMD {
     }
 
     @IsHologramType(types = {HologramType.BLOCK})
-    @Command("hologram-new edit <hologram> block <material>")
+    @Command("hologram-new edit <hologram> block <block>")
     @Description("Changes the block material for the hologram")
     @CommandPermission("fancyholograms.commands.hologram.edit.block")
     public void set(
             final @NotNull BukkitCommandActor actor,
             final @NotNull Hologram hologram,
-            final @NotNull @SuggestWith(BlockMaterialSuggestion.class) Material material
+            final @NotNull BlockData block
     ) {
-        if (!material.isBlock()) {
-            translator.translate("commands.hologram.edit.block.not_a_block")
-                    .withPrefix()
-                    .replace("material", material.name())
-                    .send(actor.sender());
-            return;
-        }
-
         BlockHologramData data = (BlockHologramData) hologram.getData();
 
         BlockHologramData copied = data.copy(data.getName());
-        copied.setBlock(material);
+        copied.setBlockData(block);
 
-        if (copied.getBlock().equals(data.getBlock())) {
+        if (copied.getBlockData().equals(data.getBlockData())) {
             translator.translate("commands.hologram.edit.block.already_set")
                     .withPrefix()
                     .replace("hologram", hologram.getData().getName())
-                    .replace("material", material.name())
+                    .replace("block", block.getAsString())
                     .send(actor.sender());
             return;
         }
@@ -69,7 +56,7 @@ public final class BlockCMD {
             return;
         }
 
-        data.setBlock(material);
+        data.setBlockData(block);
 
         for (UUID viewerUUID : hologram.getViewers()) {
             Player viewer = Bukkit.getPlayer(viewerUUID);
@@ -88,7 +75,7 @@ public final class BlockCMD {
         translator.translate("commands.hologram.edit.block.updated")
                 .withPrefix()
                 .replace("hologram", hologram.getData().getName())
-                .replace("material", material.name())
+                .replace("block", block.getAsString())
                 .send(actor.sender());
     }
 }

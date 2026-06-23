@@ -15,6 +15,12 @@ import com.fancyinnovations.fancyholograms.commands.lampCommands.conditions.Holo
 import com.fancyinnovations.fancyholograms.commands.lampCommands.fancyholograms.ConfigCMD;
 import com.fancyinnovations.fancyholograms.commands.lampCommands.hologram.*;
 import com.fancyinnovations.fancyholograms.commands.lampCommands.types.*;
+import com.fancyinnovations.fancyholograms.commands.lampCommands.types.BlockDataCommandType;
+
+import org.bukkit.block.BlockState;
+import org.bukkit.block.data.BlockData;
+import revxrsal.commands.bukkit.BukkitLampConfig;
+import revxrsal.commands.bukkit.brigadier.MinecraftArgumentType;
 import com.fancyinnovations.fancyholograms.config.FHConfiguration;
 import com.fancyinnovations.fancyholograms.controller.HologramControllerImpl;
 import com.fancyinnovations.fancyholograms.converter.FHConversionRegistry;
@@ -114,8 +120,7 @@ public class FancyHologramsPlugin extends JavaPlugin implements FancyHolograms {
                 "FancyHolograms",
                 LogLevel.INFO,
                 List.of(consoleAppender, jsonAppender),
-                List.of(new PluginMiddleware(this))
-        );
+                List.of(new PluginMiddleware(this)));
 
         versionFetcher = new MasterVersionFetcher("FancyHolograms");
         versionConfig = new VersionConfig(this, versionFetcher);
@@ -125,16 +130,14 @@ public class FancyHologramsPlugin extends JavaPlugin implements FancyHolograms {
         hologramThread = Executors.newSingleThreadScheduledExecutor(
                 new ThreadFactoryBuilder()
                         .setNameFormat("FancyHolograms-Hologram")
-                        .build()
-        );
+                        .build());
 
         storageThread = Executors.newSingleThreadExecutor(
                 new ThreadFactoryBuilder()
                         .setDaemon(true)
                         .setPriority(Thread.MIN_PRIORITY + 1)
                         .setNameFormat("FancyHolograms-Storage")
-                        .build()
-        );
+                        .build());
 
         configuration = new FHConfiguration();
 
@@ -145,9 +148,7 @@ public class FancyHologramsPlugin extends JavaPlugin implements FancyHolograms {
                         "#81E366",
                         "#E3CA66",
                         "#E36666",
-                        "<color:#ba8813>[</color><gradient:#ffae00:#fffb00:#ffae00>FancyHolograms</gradient><color:#ba8813>]</color> <gray>"
-                )
-        );
+                        "<color:#ba8813>[</color><gradient:#ffae00:#fffb00:#ffae00>FancyHolograms</gradient><color:#ba8813>]</color> <gray>"));
     }
 
     public static @NotNull FancyHologramsPlugin get() {
@@ -225,15 +226,16 @@ public class FancyHologramsPlugin extends JavaPlugin implements FancyHolograms {
             checkForNewerVersion();
         }
         if (versionConfig.isDevelopmentBuild()) {
-            fancyLogger.warn("""
-                    
-                    --------------------------------------------------
-                    You are using a development build of FancyHolograms.
-                    Please be aware that there might be bugs in this version.
-                    If you find any bugs, please report them on our discord server (https://discord.gg/ZUgYCEJUEx).
-                    Read more about the risks of using a development build here: https://fancyinnovations.com/docs/general/development-guidelines/versioning#build
-                    --------------------------------------------------
-                    """);
+            fancyLogger
+                    .warn("""
+
+                            --------------------------------------------------
+                            You are using a development build of FancyHolograms.
+                            Please be aware that there might be bugs in this version.
+                            If you find any bugs, please report them on our discord server (https://discord.gg/ZUgYCEJUEx).
+                            Read more about the risks of using a development build here: https://fancyinnovations.com/docs/general/development-guidelines/versioning#build
+                            --------------------------------------------------
+                            """);
         }
 
         metrics.register();
@@ -260,8 +262,7 @@ public class FancyHologramsPlugin extends JavaPlugin implements FancyHolograms {
             getHologramThread().scheduleWithFixedDelay(
                     this::savePersistentHolograms,
                     configuration.getAutosaveInterval(),
-                    120L, TimeUnit.SECONDS
-            );
+                    120L, TimeUnit.SECONDS);
         }
 
         FHConversionRegistry.registerBuiltInConverters();
@@ -287,8 +288,8 @@ public class FancyHologramsPlugin extends JavaPlugin implements FancyHolograms {
         if (configuration.isRegisterCommands()) {
             commands.forEach(command -> getServer().getCommandMap().register("fancyholograms", command));
         } else {
-            commands.stream().filter(Command::isRegistered).forEach(command ->
-                    command.unregister(getServer().getCommandMap()));
+            commands.stream().filter(Command::isRegistered)
+                    .forEach(command -> command.unregister(getServer().getCommandMap()));
         }
 
         if (false) {
@@ -298,8 +299,23 @@ public class FancyHologramsPlugin extends JavaPlugin implements FancyHolograms {
     }
 
     private void registerLampCommands() {
+
+        BukkitLampConfig config = BukkitLampConfig.builder(this)
+                .argumentTypes(types -> {
+                    try {
+                        types.addType(BlockData.class,
+                                io.papermc.paper.command.brigadier.argument.ArgumentTypes.blockState());
+                        fancyLogger
+                                .info("Successfully registered native BlockStateArgument via Paper ArgumentTypes API.");
+                    } catch (Throwable t) {
+                        fancyLogger
+                                .warn("Failed to register native BlockStateArgument via Paper API: " + t.getMessage());
+                    }
+                })
+                .build();
+
         Lamp.Builder<BukkitCommandActor> lampBuilder = BukkitLamp
-                .builder(this);
+                .builder(config);
 
         // conditions
         lampBuilder
@@ -313,6 +329,7 @@ public class FancyHologramsPlugin extends JavaPlugin implements FancyHolograms {
             builder.addParameterType(de.oliver.fancylib.colors.GlowingColor.class, GlowingColorCommandType.INSTANCE);
             builder.addParameterType(FancyDuration.class, DurationCommandType.INSTANCE);
             builder.addParameterType(Color.class, ColorCommandType.INSTANCE);
+            builder.addParameterType(BlockData.class, BlockDataCommandType.INSTANCE);
         });
 
         // exception handlers
@@ -322,7 +339,8 @@ public class FancyHologramsPlugin extends JavaPlugin implements FancyHolograms {
                 .exceptionHandler(GlowingColorCommandType.INSTANCE)
                 .exceptionHandler(HologramTypeCondition.INSTANCE)
                 .exceptionHandler(DurationCommandType.INSTANCE)
-                .exceptionHandler(ColorCommandType.INSTANCE);
+                .exceptionHandler(ColorCommandType.INSTANCE)
+                .exceptionHandler(BlockDataCommandType.INSTANCE);
 
         Lamp<BukkitCommandActor> lamp = lampBuilder.build();
 
@@ -343,6 +361,102 @@ public class FancyHologramsPlugin extends JavaPlugin implements FancyHolograms {
         lamp.register(BlockCMD.INSTANCE);
         lamp.register(BrightnessCMD.INSTANCE);
         lamp.register(CenterCMD.INSTANCE);
+
+        /*
+         * try {
+         * this.getLifecycleManager().registerEventHandler(
+         * io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents.COMMANDS, event
+         * -> {
+         * de.oliver.fancylib.FancyLib.getInstance().getScheduler().runTaskLater(null,
+         * 1L, () -> {
+         * try {
+         * com.mojang.brigadier.CommandDispatcher<?> dispatcher = getRawDispatcher();
+         * if (dispatcher != null) {
+         * clearBlockStateSuggestions(dispatcher);
+         * } else {
+         * fancyLogger.warn("Could not retrieve raw Brigadier command dispatcher.");
+         * }
+         * } catch (Throwable t) {
+         * fancyLogger
+         * .warn("Failed to clear suggestions on command registration: " +
+         * t.getMessage());
+         * }
+         * });
+         * });
+         * } catch (Throwable t) {
+         * fancyLogger.
+         * warn("Failed to register Paper Brigadier commands lifecycle event handler: "
+         * + t.getMessage());
+         * }
+         */
+    }
+
+    private com.mojang.brigadier.CommandDispatcher<?> getRawDispatcher() {
+        try {
+            Object craftServer = Bukkit.getServer();
+            java.lang.reflect.Method getServerMethod = craftServer.getClass().getMethod("getServer");
+            Object minecraftServer = getServerMethod.invoke(craftServer);
+
+            java.lang.reflect.Method getCommandsMethod = null;
+            Class<?> current = minecraftServer.getClass();
+            while (current != null) {
+                for (java.lang.reflect.Method m : current.getDeclaredMethods()) {
+                    if (m.getReturnType().getName().equals("net.minecraft.commands.Commands")) {
+                        getCommandsMethod = m;
+                        getCommandsMethod.setAccessible(true);
+                        break;
+                    }
+                }
+                if (getCommandsMethod != null)
+                    break;
+                current = current.getSuperclass();
+            }
+            if (getCommandsMethod != null) {
+                Object commandsInstance = getCommandsMethod.invoke(minecraftServer);
+                java.lang.reflect.Method getDispatcherMethod = commandsInstance.getClass().getMethod("getDispatcher");
+                return (com.mojang.brigadier.CommandDispatcher<?>) getDispatcherMethod.invoke(commandsInstance);
+            }
+        } catch (Throwable ignored) {
+        }
+        return null;
+    }
+
+    private void clearBlockStateSuggestions(com.mojang.brigadier.CommandDispatcher<?> dispatcher) {
+        try {
+            Class<?> blockStateArgumentClass = Class
+                    .forName("net.minecraft.commands.arguments.blocks.BlockStateArgument");
+            clearBlockStateSuggestionsRecursive(dispatcher.getRoot(), blockStateArgumentClass,
+                    new java.util.HashSet<>());
+        } catch (Throwable t) {
+            fancyLogger.warn("Failed to clear block state suggestions: " + t.getMessage());
+        }
+    }
+
+    private void clearBlockStateSuggestionsRecursive(
+            com.mojang.brigadier.tree.CommandNode<?> node,
+            Class<?> blockStateArgumentClass,
+            java.util.Set<com.mojang.brigadier.tree.CommandNode<?>> visited) {
+        if (!visited.add(node)) {
+            return;
+        }
+        if (node instanceof com.mojang.brigadier.tree.ArgumentCommandNode) {
+            com.mojang.brigadier.tree.ArgumentCommandNode<?, ?> argNode = (com.mojang.brigadier.tree.ArgumentCommandNode<?, ?>) node;
+            if (blockStateArgumentClass.isInstance(argNode.getType())) {
+                try {
+                    java.lang.reflect.Field customSuggestionsField = com.mojang.brigadier.tree.ArgumentCommandNode.class
+                            .getDeclaredField("customSuggestions");
+                    customSuggestionsField.setAccessible(true);
+                    customSuggestionsField.set(argNode, null);
+                    fancyLogger.info("Cleared custom suggestions for native block argument: " + argNode.getName());
+                } catch (Throwable t) {
+                    fancyLogger.warn(
+                            "Failed to set suggestion provider on node " + argNode.getName() + ": " + t.getMessage());
+                }
+            }
+        }
+        for (com.mojang.brigadier.tree.CommandNode<?> child : node.getChildren()) {
+            clearBlockStateSuggestionsRecursive(child, blockStateArgumentClass, visited);
+        }
     }
 
     private void registerListeners() {
@@ -362,20 +476,21 @@ public class FancyHologramsPlugin extends JavaPlugin implements FancyHolograms {
     private void checkForNewerVersion() {
         final var current = new ComparableVersion(versionConfig.getVersion());
 
-        supplyAsync(getVersionFetcher()::fetchNewestVersion).thenApply(Objects::requireNonNull).whenComplete((newest, error) -> {
-            if (error != null || newest.compareTo(current) <= 0) {
-                return; // could not get the newest version or already on latest
-            }
+        supplyAsync(getVersionFetcher()::fetchNewestVersion).thenApply(Objects::requireNonNull)
+                .whenComplete((newest, error) -> {
+                    if (error != null || newest.compareTo(current) <= 0) {
+                        return; // could not get the newest version or already on latest
+                    }
 
-            fancyLogger.warn("""
-                    
-                    -------------------------------------------------------
-                    You are not using the latest version of the FancyHolograms plugin.
-                    Please update to the newest version (%s).
-                    %s
-                    -------------------------------------------------------
-                    """.formatted(newest, getVersionFetcher().getDownloadUrl()));
-        });
+                    fancyLogger.warn("""
+
+                            -------------------------------------------------------
+                            You are not using the latest version of the FancyHolograms plugin.
+                            Please update to the newest version (%s).
+                            %s
+                            -------------------------------------------------------
+                            """.formatted(newest, getVersionFetcher().getDownloadUrl()));
+                });
     }
 
     public void savePersistentHolograms() {
@@ -417,7 +532,6 @@ public class FancyHologramsPlugin extends JavaPlugin implements FancyHolograms {
     public HologramControllerImpl getControllerImpl() {
         return controller;
     }
-
 
     @Override
     public HologramRegistry getRegistry() {

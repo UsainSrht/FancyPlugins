@@ -44,6 +44,7 @@ dependencies {
 
     implementation("io.github.revxrsal:lamp.common:4.0.0-rc.17")
     implementation("io.github.revxrsal:lamp.bukkit:4.0.0-rc.17")
+    implementation("io.github.revxrsal:lamp.brigadier:4.0.0-rc.17")
     compileOnly(project(":plugins:fancynpcs-v2:fn-v2-api"))
     compileOnly("org.lushplugins.chatcolorhandler:paper:8.1.1")
     compileOnly("com.viaversion:viaversion-api:5.7.1")
